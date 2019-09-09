@@ -1,7 +1,6 @@
 const fileCache = require('think-cache-file');
-const nunjucks = require('think-view-nunjucks');
-const fileSession = require('think-session-file');
-const mysql = require('think-model-mysql');
+const redisSession = require('think-session-redis');
+const mongo = require('think-mongo');
 const {Console, File, DateFile} = require('think-logger3');
 const path = require('path');
 const isDev = think.env === 'development';
@@ -24,26 +23,26 @@ exports.cache = {
 };
 
 /**
- * model adapter config
+ * mongo adapter config
  * @type {Object}
  */
 exports.model = {
-  type: 'mysql',
+  type: 'mongo',
   common: {
     logConnect: isDev,
-    logSql: isDev,
     logger: msg => think.logger.info(msg)
   },
-  mysql: {
-    handle: mysql,
-    database: '',
-    prefix: 'think_',
-    encoding: 'utf8',
-    host: '127.0.0.1',
-    port: '',
-    user: 'root',
-    password: 'root',
-    dateStrings: true
+  mongo: {
+    handle: mongo,
+    host: ['127.0.0.1'],
+    port: [27017],
+    user: '',
+    password: '',
+    database: 'cms',
+    options: {
+      relicaSet: 'mgset-3074013',
+      authSource: 'admin'
+    }
   }
 };
 
@@ -52,37 +51,31 @@ exports.model = {
  * @type {Object}
  */
 exports.session = {
-  type: 'file',
+  type: 'redis',
   common: {
     cookie: {
-      name: 'thinkjs'
-      // keys: ['werwer', 'werwer'],
-      // signed: true
+      name: 'thinkjs',
+      // maxAge: '',
+      // expires: '',
+      path: '/',
+      // domain: '',
+      // secure: false,
+      // keys: [],
+      httpOnly: true,
+      sameSite: false,
+      signed: false,
+      overwrite: false
     }
   },
-  file: {
-    handle: fileSession,
-    sessionPath: path.join(think.ROOT_PATH, 'runtime/session')
+  redis: {
+    handle: redisSession,
+    maxAge: 3600 * 1000,
+    autoUpdate: false
   }
-};
+}
 
 /**
- * view adapter config
- * @type {Object}
- */
-exports.view = {
-  type: 'nunjucks',
-  common: {
-    viewPath: path.join(think.ROOT_PATH, 'view'),
-    sep: '_',
-    extname: '.html'
-  },
-  nunjucks: {
-    handle: nunjucks
-  }
-};
-
-/**
+ /**
  * logger adapter config
  * @type {Object}
  */
